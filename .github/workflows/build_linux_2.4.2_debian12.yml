@@ -20,8 +20,17 @@ jobs:
           repository: OrcaSlicer/OrcaSlicer
           ref: v2.4.2
           fetch-depth: 0
+      - name: Restore deps build cache (built under build_linux.sh -d)
+        uses: actions/cache@v4
+        with:
+          path: deps/build
+          key: orca-deps-debian12-v2.4.2-v1
       - name: Install system dependencies (Debian 12 branch of build_linux.sh)
-        run: ./build_linux.sh -u
+        run: |
+          ./build_linux.sh -u
+          # build_linux.sh -u picks libwebkit2gtk-4.0-dev when available (Debian 12
+          # ships both), but OrcaSlicer 2.4.2 needs webkit2gtk-4.1 for the GUI.
+          sudo apt-get install -y libwebkit2gtk-4.1-dev
       - name: Build deps + OrcaSlicer + AppImage
         run: ./build_linux.sh -dsi
       - name: Locate AppImage
