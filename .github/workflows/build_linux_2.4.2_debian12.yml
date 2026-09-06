@@ -1,0 +1,36 @@
+name: Build OrcaSlicer v2.4.2 Debian12 AppImage
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linux-debian12:
+    runs-on: ubuntu-24.04
+    container:
+      image: debian:12
+    timeout-minutes: 300
+    steps:
+      - name: Bootstrap container (git/sudo needed before checkout)
+        run: |
+          apt-get update
+          apt-get install -y sudo ca-certificates curl git
+      - name: Checkout v2.4.2 (full history for versioning)
+        uses: actions/checkout@v4
+        with:
+          repository: OrcaSlicer/OrcaSlicer
+          ref: v2.4.2
+          fetch-depth: 0
+      - name: Install system dependencies (Debian 12 branch of build_linux.sh)
+        run: ./build_linux.sh -u
+      - name: Build deps + OrcaSlicer + AppImage
+        run: ./build_linux.sh -dsi
+      - name: Locate AppImage
+        run: find . -name '*.AppImage' -type f
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer-2.4.2-Debian12-AppImage
+          path: |
+            *.AppImage
+            build/*.AppImage
+          if-no-files-found: warn
